@@ -1,6 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import numpy as np
+from matplotlib.ticker import ScalarFormatter
 
 df = pd.read_csv('results.csv')
 df.columns = [c.strip() for c in df.columns]
@@ -8,28 +8,26 @@ df.columns = [c.strip() for c in df.columns]
 x = df['N'].values
 y = df['Time(sec)'].values
 
-a = y[-1] / (x[-1]**2)
+plt.style.use('seaborn-v0_8-muted')
+plt.figure(figsize=(10, 6), dpi=100)
 
-plt.figure(figsize=(14, 6))
+plt.plot(x, y, color='#d62728', marker='o', markersize=4, linestyle='-', linewidth=1.5, label='Actual Time')
 
-# Левый график: Замеры
-plt.subplot(1, 2, 1)
-plt.plot(x, y, 'r-o')
-plt.title('Замеры')
-plt.xlabel('N')
-plt.ylabel('Время (сек)')
-plt.grid(True, alpha=0.3)
+plt.title('Зависимость времени выполнения от N', fontsize=14, pad=15)
+plt.xlabel('Количество элементов (N)', fontsize=12)
+plt.ylabel('Время (секунды)', fontsize=12)
 
-plt.subplot(1, 2, 2)
-x_pred = np.linspace(0, x.max() * 1.5, 1000)
-y_pred = a * (x_pred**2)
+ax = plt.gca()
+formatter = ScalarFormatter(useMathText=True)
+formatter.set_scientific(True)
+formatter.set_powerlimits((-1, 1))
+ax.xaxis.set_major_formatter(formatter)
 
-plt.plot(x_pred, y_pred, 'g--')
-plt.plot(x, y, 'ro', markersize=4)
-plt.title('Прогноз')
-plt.xlabel('N')
-plt.ylabel('Время (сек)')
-plt.grid(True, alpha=0.3)
+plt.grid(True, which='major', linestyle='--', alpha=0.7)
+plt.grid(True, which='minor', linestyle=':', alpha=0.4)
+plt.minorticks_on()
 
+plt.legend()
 plt.tight_layout()
+
 plt.show()
