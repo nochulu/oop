@@ -33,7 +33,6 @@ long long totalDays(int y, int mon, int d) {
 
 string DateTime::getDayOfWeek() const {
     long long d = totalDays(year, month, day);
-    // 01.01.0001 по этому алгоритму дает остаток, соответствующий понедельнику
     string weeks[] = { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
     return weeks[(d + 1) % 7];
 }
