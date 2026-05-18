@@ -8,6 +8,8 @@ class BFS {
     const Graph& graph;
 public:
     BFS(const Graph& agraph) : graph(agraph) {} 
-    bool connected(Node* begin, Node* end); 
+    bool connected(Node* begin, Node* end); \
+
+    std::set<Node*> getComponent(Node* start, std::set<Node*>& globalVisited);
 };
 #endif

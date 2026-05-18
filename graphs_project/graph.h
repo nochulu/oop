@@ -1,23 +1,32 @@
 #ifndef GRAPH_H 
 #define GRAPH_H
+
 #include <iostream>
 #include <string>
 #include <set>
 #include <vector>
 #include <queue>
+#include <map>
 
 class Node;
 typedef std::set<Node*>::const_iterator node_iterator;
 
 class Graph {
     std::set<Node*> nodes;
+    std::map<std::string, Node*> nameToNode; // Быстрый поиск узла по имени
 public:
+    Graph() {}
+    Graph(const std::string& filename); 
+    ~Graph();
+
     void addNode(Node* node);
     void removeNode(Node* node);
     void addEdge(Node* begin, Node* end);
     void removeEdge(Node* begin, Node* end);
-    node_iterator begin() const {
-        return nodes.begin(); } 
+    
+    Node* findNode(const std::string& name) const;
+
+    node_iterator begin() const { return nodes.begin(); } 
     node_iterator end() const { return nodes.end(); } 
 };
 
@@ -29,9 +38,9 @@ class Node {
 public:
     Node(const std::string& aname) : name(aname) {}
     const std::string& getName() const { return name; }
-    node_iterator nb_begin() const {
-        return neighbours.begin(); } 
+    node_iterator nb_begin() const { return neighbours.begin(); } 
     node_iterator nb_end() const { return neighbours.end(); } 
     friend class Graph; 
 };
+
 #endif

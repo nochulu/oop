@@ -1,42 +1,80 @@
 #include <iostream>
+#include <fstream>
+#include <set>
 #include "graph.h"
 #include "bfs.h"
-#include "dfs.h"
+
+using namespace std;
+
+// Сохранение ребер компоненты связности в файл структуры аналогичной исходной
+void saveComponentToFile(const std::set<Node*>& component, const std::string& outputFilename) {
+    ofstream outFile(outputFilename);
+    if (!outFile.is_open()) {
+        cerr << "Failed to open output file: " << outputFilename << std::endl;
+        return;
+    }
+
+    outFile << "Source\tTarget\n";
+    
+    // Множество для исключения дублирования ребер (ведь граф неориентированный, 0-1 и 1-0 это одно ребро)
+    set<pair<string, string>> writtenEdges;
+
+    for (Node* node : component) {
+        for (node_iterator it = node->nb_begin(); it != node->nb_end(); it++) {
+            Node* neighbour = *it;
+            
+            string u = node->getName();
+            string v = neighbour->getName();
+            if (u > v) swap(u, v); // Нормализуем порядок имен в паре
+
+            if (writtenEdges.find({u, v}) == writtenEdges.end()) {
+                outFile << u << "\t" << v << "\n";
+                writtenEdges.insert({u, v});
+            }
+        }
+    }
+    outFile.close();
+    cout << "Saved component with " << component.size() << " nodes to -> " << outputFilename << endl;
+}
+
+// Общая функция обработки любого файла графа
+void processGraphFile(const string& inputFilename, const string& prefix) {
+    cout << "\n--- Processing: " << inputFilename << " ---" << endl;
+    
+    // Создаем граф из файла 
+    Graph graph(inputFilename);
+    BFS bfs(graph);
+
+    set<Node*> globalVisited;
+    int componentCount = 0;
+
+    // Итерируемся по всем вершинам графа для поиска непересекающихся подграфов
+    for (node_iterator it = graph.begin(); it != graph.end(); it++) {
+        Node* currentNode = *it;
+
+        // Если вершина еще не была посещена ни в одной из предыдущих компонент
+        if (globalVisited.find(currentNode) == globalVisited.end()) {
+            componentCount++;
+            
+            // Выделяем подграф при помощи BFS 
+            set<Node*> component = bfs.getComponent(currentNode, globalVisited);
+            
+            // Формируем имя файла 
+            string outName = prefix + "_comp_" + to_string(componentCount) + ".txt";
+            saveComponentToFile(component, outName);
+        }
+    }
+   cout << "Success! Total components found: " << componentCount << endl;
+}
 
 int main() {
-    Graph myGraph;
+    //  Тестовый файл графа
+    processGraphFile("testgraph.txt", "TestGraph");
 
-    Node* n0 = new Node("0");
-    Node* n1 = new Node("1");
-    Node* n2 = new Node("2");
-    Node* n3 = new Node("3");
-    Node* n4 = new Node("4");
-    Node* n5 = new Node("5");
+    // Основной файл графа 
+    processGraphFile("1000.csv", "1000");
 
-    myGraph.addNode(n0);
-    myGraph.addNode(n1);
-    myGraph.addNode(n2);
-    myGraph.addNode(n3);
-    myGraph.addNode(n4);
-    myGraph.addNode(n5);
-
-    myGraph.addEdge(n0, n1);
-    myGraph.addEdge(n1, n2);
-    myGraph.addEdge(n0, n3);
-    myGraph.addEdge(n3, n4);
-    myGraph.addEdge(n4, n5);
-    myGraph.addEdge(n0, n5); 
-
-    BFS bfs(myGraph);
-    std::cout << "BFS: Path 1 to 4 exists? " << (bfs.connected(n1, n4) ? "Yes" : "No") << std::endl;
-
-    DFS dfs(myGraph);
-    std::cout << "DFS: Path 2 to 3 exists? " << (dfs.connected(n2, n3) ? "Yes" : "No") << std::endl;
-
-    myGraph.removeNode(n5);
-    std::cout << "After removing node 5, DFS 0 to 5: " << (dfs.connected(n0, n5) ? "Yes" : "No") << std::endl;
-
-    delete n0; delete n1; delete n2; delete n3; delete n4; delete n5;
+    cout << "\nAll tasks completed successfully!" << endl;
     system("pause");
     return 0;
 }
